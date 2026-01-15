@@ -1,0 +1,28 @@
+.army-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.army-list {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  color: white;
+}
+
+.army-list h2 {
+  margin: 0 0 15px 0;
+  color: #646cff;
+}
+
+.army-total h3 {
+  margin: 0 0 20px 0;
+  color: #646cff;
+  font-size: 1.2em;
+}
+
+.army-ships {
+  max-height: 70vh;
+  overflow-y: auto;
+}
