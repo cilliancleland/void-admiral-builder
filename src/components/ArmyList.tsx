@@ -46,6 +46,8 @@ interface ArmyListProps {
   factionData: any
   selectedFaction: string
   totalPoints: number
+  hasDuplicateShips: boolean
+  hasIncompleteWeaponSelections: boolean
   onRemoveShip: (index: number) => void
   onUpdateWeapons: (index: number, prowWeapon: string | string[], hullWeapons: string[]) => void
 }
@@ -55,6 +57,8 @@ const ArmyList: React.FC<ArmyListProps> = ({
   factionData,
   selectedFaction,
   totalPoints,
+  hasDuplicateShips,
+  hasIncompleteWeaponSelections,
   onRemoveShip,
   onUpdateWeapons
 }) => {
@@ -64,6 +68,18 @@ const ArmyList: React.FC<ArmyListProps> = ({
         <h2>Your Army</h2>
         <div className="army-total">
           <h3>Total Points: {totalPoints}</h3>
+          {hasDuplicateShips && (
+            <div className="duplicate-warning">
+              <i className="fas fa-exclamation-triangle"></i>
+              Duplicate ships detected
+            </div>
+          )}
+          {hasIncompleteWeaponSelections && (
+            <div className="incomplete-warning">
+              <i className="fas fa-exclamation-circle"></i>
+              Ships with incomplete weapon selections
+            </div>
+          )}
         </div>
         {armyList.length === 0 ? (
           <p>No ships added yet</p>

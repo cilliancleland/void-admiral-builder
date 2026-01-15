@@ -3,6 +3,7 @@ import './App.css'
 import ArmyList from './components/ArmyList'
 import FactionSelector from './components/FactionSelector'
 import ShipsModal from './components/ShipsModal'
+import FactionInfoModal from './components/FactionInfoModal'
 
 function App() {
   const [selectedFaction, setSelectedFaction] = useState('')
@@ -19,6 +20,8 @@ function App() {
   }>>([])
   const [totalPoints, setTotalPoints] = useState(0)
   const [isShipsModalOpen, setIsShipsModalOpen] = useState(false)
+  const [isFactionInfoModalOpen, setIsFactionInfoModalOpen] = useState(false)
+  const [factionInfoTab, setFactionInfoTab] = useState<'abilities' | 'rules'>('abilities')
 
   const handleFactionChange = (newFaction: string) => {
     setSelectedFaction(newFaction)
@@ -56,6 +59,9 @@ function App() {
       isSquadron: isSquadron
     }])
     setTotalPoints(totalPoints + shipPoints)
+
+    // Close the modal after adding the ship
+    setIsShipsModalOpen(false)
   }
 
   const removeShipFromArmy = (index: number) => {
@@ -70,6 +76,85 @@ function App() {
     updatedArmyList[index].prowWeapon = prowWeapon
     updatedArmyList[index].hullWeapons = hullWeapons
     setArmyList(updatedArmyList)
+  }
+
+  const hasDuplicateShips = () => {
+    if (armyList.length < 2) return false
+
+    for (let i = 0; i < armyList.length; i++) {
+      for (let j = i + 1; j < armyList.length; j++) {
+        const ship1 = armyList[i]
+        const ship2 = armyList[j]
+
+        // Skip squadrons
+        if (ship1.isSquadron || ship2.isSquadron) continue
+
+        // Skip ships with incomplete weapon selections
+        const ship1Complete = isShipWeaponSelectionComplete(ship1, factionData[selectedFaction].ships[ship1.name])
+        const ship2Complete = isShipWeaponSelectionComplete(ship2, factionData[selectedFaction].ships[ship2.name])
+        if (!ship1Complete || !ship2Complete) continue
+
+        // Check if ships have same name/class
+        if (ship1.name === ship2.name) {
+          // Check if weapon configurations are identical
+          const prow1 = Array.isArray(ship1.prowWeapon) ? ship1.prowWeapon.sort().join(',') : (ship1.prowWeapon || '')
+          const prow2 = Array.isArray(ship2.prowWeapon) ? ship2.prowWeapon.sort().join(',') : (ship2.prowWeapon || '')
+          const hull1 = [...ship1.hullWeapons].sort().join(',')
+          const hull2 = [...ship2.hullWeapons].sort().join(',')
+
+          if (prow1 === prow2 && hull1 === hull2) {
+            return true
+          }
+        }
+      }
+    }
+    return false
+  }
+
+  const hasIncompleteWeaponSelections = () => {
+    if (armyList.length === 0) return false
+
+    return armyList.some(ship => {
+      const shipData = factionData[selectedFaction].ships[ship.name]
+      return !isShipWeaponSelectionComplete(ship, shipData)
+    })
+  }
+
+  const isShipWeaponSelectionComplete = (ship: any, shipData: any) => {
+    // Check if all required prow weapons are selected
+    if (shipData.prow) {
+      const requiredProwSelections = shipData.prow.select
+      const currentProwSelections = Array.isArray(ship.prowWeapon) ? ship.prowWeapon.length : (ship.prowWeapon ? 1 : 0)
+
+      if (currentProwSelections < requiredProwSelections) {
+        return false
+      }
+
+      // Check if any prow weapons are still default/empty
+      if (Array.isArray(ship.prowWeapon)) {
+        if (ship.prowWeapon.some((weapon: string) => !weapon || weapon === '')) {
+          return false
+        }
+      } else if (!ship.prowWeapon || ship.prowWeapon === '') {
+        return false
+      }
+    }
+
+    // Check if all required hull weapons are selected
+    if (shipData.hull) {
+      const requiredHullSelections = ship.isSquadron ? shipData.hull.select * 3 : shipData.hull.select
+
+      if (ship.hullWeapons.length < requiredHullSelections) {
+        return false
+      }
+
+      // Check if any hull weapons are still default/empty
+      if (ship.hullWeapons.some((weapon: string) => !weapon || weapon === '')) {
+        return false
+      }
+    }
+
+    return true
   }
 
   return (
@@ -88,25 +173,51 @@ function App() {
           onFactionChange={setSelectedFaction}
           onFactionSelect={handleFactionChange}
         />
-      </header>
 
-      {selectedFaction && factionData && (
-        <div className="main-content">
-          <div className="ships-section">
+        {selectedFaction && factionData && (
+          <div className="action-buttons">
             <button
               className="open-ships-modal-btn"
               onClick={() => setIsShipsModalOpen(true)}
             >
-              <i className="fas fa-ship"></i>
-              View Available Ships
+              <i className="fas fa-plus"></i>
+              Add ship
+            </button>
+
+            <button
+              className="faction-info-btn"
+              onClick={() => {
+                setFactionInfoTab('abilities')
+                setIsFactionInfoModalOpen(true)
+              }}
+            >
+              <i className="fas fa-dice"></i>
+              Command Abilities
+            </button>
+
+            <button
+              className="faction-info-btn"
+              onClick={() => {
+                setFactionInfoTab('rules')
+                setIsFactionInfoModalOpen(true)
+              }}
+            >
+              <i className="fas fa-book"></i>
+              Fluff & Rules
             </button>
           </div>
+        )}
+      </header>
 
+      {selectedFaction && factionData && (
+        <div className="main-content">
           <ArmyList
             armyList={armyList}
             factionData={factionData}
             selectedFaction={selectedFaction}
             totalPoints={totalPoints}
+            hasDuplicateShips={hasDuplicateShips()}
+            hasIncompleteWeaponSelections={hasIncompleteWeaponSelections()}
             onRemoveShip={removeShipFromArmy}
             onUpdateWeapons={updateShipWeapons}
           />
@@ -117,6 +228,14 @@ function App() {
             factionData={factionData}
             selectedFaction={selectedFaction}
             onAddToArmy={addShipToArmy}
+          />
+
+          <FactionInfoModal
+            isOpen={isFactionInfoModalOpen}
+            onClose={() => setIsFactionInfoModalOpen(false)}
+            factionData={factionData}
+            selectedFaction={selectedFaction}
+            activeTab={factionInfoTab}
           />
         </div>
       )}

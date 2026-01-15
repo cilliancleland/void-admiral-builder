@@ -22,7 +22,36 @@
   font-size: 1.2em;
 }
 
+.duplicate-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffc107;
+  font-size: 0.85em;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.duplicate-warning i {
+  font-size: 0.9em;
+  color: #ffc107;
+}
+
+.incomplete-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #17a2b8;
+  font-size: 0.85em;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.incomplete-warning i {
+  font-size: 0.9em;
+  color: #17a2b8;
+}
+
 .army-ships {
-  max-height: 70vh;
   overflow-y: auto;
 }

@@ -113,34 +113,25 @@ button:focus-visible {
   gap: 20px;
 }
 
-.ships-section {
-  flex: 2;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 20px;
-}
-
 .open-ships-modal-btn {
-  background: linear-gradient(135deg, #646cff 0%, #535bf2 100%);
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
+  border-radius: 6px;
+  padding: 10px 16px;
   color: white;
-  font-size: 1.1em;
+  font-size: 0.9em;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 4px 15px rgba(100, 108, 255, 0.3);
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
   transition: all 0.3s ease;
-  min-height: 60px;
 }
 
 .open-ships-modal-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(100, 108, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 123, 255, 0.4);
 }
 
 .open-ships-modal-btn:active {
@@ -148,20 +139,70 @@ button:focus-visible {
 }
 
 .open-ships-modal-btn i {
-  font-size: 1.2em;
+  font-size: 0.8em;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.faction-info-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  color: white;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+  transition: all 0.3s ease;
+}
+
+.faction-info-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(40, 167, 69, 0.4);
+}
+
+.faction-info-btn:active {
+  transform: translateY(0);
+}
+
+.faction-info-btn i {
+  font-size: 0.8em;
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .ships-section {
-    padding: 15px;
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
-  .open-ships-modal-btn {
-    width: 100%;
-    max-width: 300px;
-    padding: 14px 20px;
-    font-size: 1em;
+  .open-ships-modal-btn,
+  .faction-info-btn {
+    padding: 12px 20px;
+    font-size: 0.95em;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-buttons {
+    margin-top: 20px;
+  }
+
+  .open-ships-modal-btn,
+  .faction-info-btn {
+    padding: 14px 24px;
   }
 }
 

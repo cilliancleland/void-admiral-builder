@@ -1,6 +1,36 @@
 import React from 'react'
 import './ArmyShipCard.css'
 
+interface ShipData {
+  size: string
+  points: number
+  statline: {
+    Hull: number
+    Speed: number
+    Armour?: number
+    Shields?: number
+    Flak?: number
+  }
+  prow?: {
+    select: number
+    options: Array<{
+      name: string
+      targets?: string
+      attacks?: number
+      range?: string
+    }>
+  }
+  hull?: {
+    select: number
+    options: Array<{
+      name: string
+      targets?: string
+      attacks?: number
+      range?: string
+    }>
+  }
+}
+
 interface ArmyShip {
   name: string
   count: number
@@ -55,6 +85,44 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
   onRemove,
   onUpdateWeapons
 }) => {
+  const isShipWeaponSelectionComplete = (ship: any, shipData: ShipData) => {
+    // Check if all required prow weapons are selected
+    if (shipData.prow) {
+      const requiredProwSelections = shipData.prow.select
+      const currentProwSelections = Array.isArray(ship.prowWeapon) ? ship.prowWeapon.length : (ship.prowWeapon ? 1 : 0)
+
+      if (currentProwSelections < requiredProwSelections) {
+        return false
+      }
+
+      // Check if any prow weapons are still default/empty
+      if (Array.isArray(ship.prowWeapon)) {
+        if (ship.prowWeapon.some((weapon: string) => !weapon || weapon === '')) {
+          return false
+        }
+      } else if (!ship.prowWeapon || ship.prowWeapon === '') {
+        return false
+      }
+    }
+
+    // Check if all required hull weapons are selected
+    if (shipData.hull) {
+      const requiredHullSelections = ship.isSquadron ? shipData.hull.select * 3 : shipData.hull.select
+
+      if (ship.hullWeapons.length < requiredHullSelections) {
+        return false
+      }
+
+      // Check if any hull weapons are still default/empty
+      if (ship.hullWeapons.some((weapon: string) => !weapon || weapon === '')) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  const hasIncompleteWeapons = !isShipWeaponSelectionComplete(ship, shipData)
   return (
     <div className="army-ship-item">
       <button
@@ -64,12 +132,17 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
       >
         <i className="fas fa-times"></i>
       </button>
-      <div className="army-ship-header">
-        <span className="ship-name">{ship.name}</span>
-        <span className="ship-points">
-          {ship.isSquadron ? `${ship.points/3} x 3 = ${ship.points}` : ship.points} pts
-        </span>
-      </div>
+                        <div className="army-ship-header">
+                          <span className="ship-name">
+                            {ship.name}
+                            {hasIncompleteWeapons && (
+                              <i className="fas fa-exclamation-triangle incomplete-weapon-icon" title="Incomplete weapon selections"></i>
+                            )}
+                          </span>
+                          <span className="ship-points">
+                            {ship.isSquadron ? `${ship.points/3} x 3 = ${ship.points}` : ship.points} pts
+                          </span>
+                        </div>
       <div className="army-ship-stats">
         <span>Hull: {shipData.statline.Hull}</span>
         <span>Speed: {shipData.statline.Speed}"</span>

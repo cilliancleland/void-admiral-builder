@@ -1,0 +1,129 @@
+.faction-modal {
+  max-width: 800px;
+  max-height: 80vh;
+}
+
+.abilities-section h3,
+.rules-section h3 {
+  color: #646cff;
+  margin-bottom: 20px;
+  font-size: 1.4em;
+}
+
+.abilities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.ability-card {
+  background-color: rgba(100, 108, 255, 0.1);
+  border: 1px solid rgba(100, 108, 255, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.ability-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ability-dice {
+  background-color: #646cff;
+  color: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.ability-card h4 {
+  margin: 0;
+  color: #646cff;
+  font-size: 1.1em;
+}
+
+.ability-card p {
+  margin: 0;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.fluff-section {
+  margin-bottom: 30px;
+}
+
+.fluff-text {
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  font-style: italic;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 3px solid #646cff;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.rule-item {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.rule-item h4 {
+  margin: 0 0 8px 0;
+  color: #ffc107;
+  font-size: 1.1em;
+}
+
+.rule-item p {
+  margin: 0;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .faction-modal {
+    max-width: 95vw;
+    max-height: 85vh;
+  }
+
+  .abilities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ability-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .modal-body {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .abilities-section h3,
+  .rules-section h3 {
+    font-size: 1.2em;
+  }
+
+  .ability-card,
+  .rule-item {
+    padding: 12px;
+  }
+}
