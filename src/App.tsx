@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import ShipsGrid from './components/ShipsGrid'
 import ArmyList from './components/ArmyList'
 import FactionSelector from './components/FactionSelector'
+import ShipsModal from './components/ShipsModal'
 
 function App() {
   const [selectedFaction, setSelectedFaction] = useState('')
@@ -18,6 +18,7 @@ function App() {
     isSquadron?: boolean
   }>>([])
   const [totalPoints, setTotalPoints] = useState(0)
+  const [isShipsModalOpen, setIsShipsModalOpen] = useState(false)
 
   const handleFactionChange = (newFaction: string) => {
     setSelectedFaction(newFaction)
@@ -92,14 +93,13 @@ function App() {
       {selectedFaction && factionData && (
         <div className="main-content">
           <div className="ships-section">
-            <div className="ships-list">
-              <h2>Available Ships - {selectedFaction}</h2>
-              <ShipsGrid
-                factionData={factionData}
-                selectedFaction={selectedFaction}
-                onAddToArmy={addShipToArmy}
-              />
-            </div>
+            <button
+              className="open-ships-modal-btn"
+              onClick={() => setIsShipsModalOpen(true)}
+            >
+              <i className="fas fa-ship"></i>
+              View Available Ships
+            </button>
           </div>
 
           <ArmyList
@@ -109,6 +109,14 @@ function App() {
             totalPoints={totalPoints}
             onRemoveShip={removeShipFromArmy}
             onUpdateWeapons={updateShipWeapons}
+          />
+
+          <ShipsModal
+            isOpen={isShipsModalOpen}
+            onClose={() => setIsShipsModalOpen(false)}
+            factionData={factionData}
+            selectedFaction={selectedFaction}
+            onAddToArmy={addShipToArmy}
           />
         </div>
       )}

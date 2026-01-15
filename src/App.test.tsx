@@ -70,7 +70,11 @@ describe('App', () => {
     const factionSelect = screen.getByRole('combobox')
     await user.selectOptions(factionSelect, 'Loyalists')
 
-    // Wait for ships to load
+    // Click the view ships button to open modal
+    const viewShipsButton = screen.getByRole('button', { name: /view available ships/i })
+    await user.click(viewShipsButton)
+
+    // Wait for ships to load in modal
     await waitFor(() => {
       expect(screen.getByText('Squadron Ship')).toBeInTheDocument()
     })
@@ -98,6 +102,10 @@ describe('App', () => {
 
     const factionSelect = screen.getByRole('combobox')
     await user.selectOptions(factionSelect, 'Loyalists')
+
+    // Open ships modal
+    const viewShipsButton = screen.getByRole('button', { name: /view available ships/i })
+    await user.click(viewShipsButton)
 
     await waitFor(() => {
       expect(screen.getByText('Galleon')).toBeInTheDocument()
@@ -134,13 +142,20 @@ describe('App', () => {
     const factionSelect = screen.getByRole('combobox')
     await user.selectOptions(factionSelect, 'Loyalists')
 
-    // Wait for ships to load and add one to army
+    // Open ships modal and add one ship to army
+    const viewShipsButton = screen.getByRole('button', { name: /view available ships/i })
+    await user.click(viewShipsButton)
+
     await waitFor(() => {
       expect(screen.getByText('Galleon')).toBeInTheDocument()
     })
 
     const addButton = screen.getAllByRole('button', { name: /add to army/i })[0]
     await user.click(addButton)
+
+    // Close modal
+    const closeButton = screen.getByRole('button', { name: /close modal/i })
+    await user.click(closeButton)
 
     // Verify ship was added
     await waitFor(() => {

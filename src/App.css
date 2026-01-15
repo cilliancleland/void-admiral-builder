@@ -14,13 +14,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   font-size: calc(10px + 2vmin);
   color: white;
-}
-
-.card {
-  padding: 2em;
 }
 
 .read-the-docs {
@@ -120,15 +115,53 @@ button:focus-visible {
 
 .ships-section {
   flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
 }
 
-.ships-list {
-  width: 100%;
-}
-
-.ships-list h2 {
+.open-ships-modal-btn {
+  background: linear-gradient(135deg, #646cff 0%, #535bf2 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
   color: white;
-  margin-bottom: 20px;
-  font-size: 1.5em;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 15px rgba(100, 108, 255, 0.3);
+  transition: all 0.3s ease;
+  min-height: 60px;
+}
+
+.open-ships-modal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(100, 108, 255, 0.4);
+}
+
+.open-ships-modal-btn:active {
+  transform: translateY(0);
+}
+
+.open-ships-modal-btn i {
+  font-size: 1.2em;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .ships-section {
+    padding: 15px;
+  }
+
+  .open-ships-modal-btn {
+    width: 100%;
+    max-width: 300px;
+    padding: 14px 20px;
+    font-size: 1em;
+  }
 }
 
