@@ -19,6 +19,13 @@ function App() {
   }>>([])
   const [totalPoints, setTotalPoints] = useState(0)
 
+  const handleFactionChange = (newFaction: string) => {
+    setSelectedFaction(newFaction)
+    // Reset army data when faction changes
+    setArmyList([])
+    setTotalPoints(0)
+  }
+
   useEffect(() => {
     fetch('/data/factions.json')
       .then(response => response.json())
@@ -78,6 +85,7 @@ function App() {
           selectedFaction={selectedFaction}
           loading={loading}
           onFactionChange={setSelectedFaction}
+          onFactionSelect={handleFactionChange}
         />
       </header>
 

@@ -6,13 +6,15 @@ interface FactionSelectorProps {
   selectedFaction: string
   loading: boolean
   onFactionChange: (faction: string) => void
+  onFactionSelect: (faction: string) => void
 }
 
 const FactionSelector: React.FC<FactionSelectorProps> = ({
   factions,
   selectedFaction,
   loading,
-  onFactionChange
+  onFactionChange,
+  onFactionSelect
 }) => {
   return (
     <div className="card">
@@ -21,7 +23,12 @@ const FactionSelector: React.FC<FactionSelectorProps> = ({
       ) : (
         <select
           value={selectedFaction}
-          onChange={(e) => onFactionChange(e.target.value)}
+          onChange={(e) => {
+            onFactionChange(e.target.value)
+            if (e.target.value) {
+              onFactionSelect(e.target.value)
+            }
+          }}
           className="army-selector"
         >
           <option value="">Choose a faction...</option>

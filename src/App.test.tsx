@@ -21,6 +21,15 @@ const mockFactionData = {
         statline: { Hull: 4, Speed: 10, Shields: 2, Flak: 1 }
       }
     }
+  },
+  'Renegades': {
+    ships: {
+      'Frigate': {
+        size: 'Small',
+        points: 5,
+        statline: { Hull: 5, Speed: 8, Shields: 2, Flak: 2 }
+      }
+    }
   }
 }
 
@@ -111,5 +120,40 @@ describe('App', () => {
     const armyShipCards = screen.getAllByText(/pts/)
     expect(armyShipCards[0]).toHaveTextContent('4 x 3 = 12') // Squadron first
     expect(armyShipCards[1]).toHaveTextContent('9 pts') // Galleons after
+  })
+
+  it('resets army when switching factions', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    // Wait for data to load and select faction
+    await waitFor(() => {
+      expect(screen.getByText('Choose a faction...')).toBeInTheDocument()
+    })
+
+    const factionSelect = screen.getByRole('combobox')
+    await user.selectOptions(factionSelect, 'Loyalists')
+
+    // Wait for ships to load and add one to army
+    await waitFor(() => {
+      expect(screen.getByText('Galleon')).toBeInTheDocument()
+    })
+
+    const addButton = screen.getAllByRole('button', { name: /add to army/i })[0]
+    await user.click(addButton)
+
+    // Verify ship was added
+    await waitFor(() => {
+      expect(screen.getByText('Total Points: 9')).toBeInTheDocument()
+    })
+
+    // Switch to a different faction
+    await user.selectOptions(factionSelect, 'Renegades')
+
+    // Verify army was reset
+    await waitFor(() => {
+      expect(screen.getByText('Total Points: 0')).toBeInTheDocument()
+      expect(screen.getByText('No ships added yet')).toBeInTheDocument()
+    })
   })
 })
