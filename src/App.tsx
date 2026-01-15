@@ -162,7 +162,7 @@ function App() {
       <header className="App-header">
         {!selectedFaction && (
           <>
-            <h1>Welcome to Army Builder</h1>
+            <h1>Welcome to Void Admiral Builder</h1>
             <p>Select your army list to begin:</p>
           </>
         )}
@@ -192,7 +192,7 @@ function App() {
               }}
             >
               <i className="fas fa-dice"></i>
-              Command Abilities
+              Void Admiral Abilities
             </button>
 
             <button

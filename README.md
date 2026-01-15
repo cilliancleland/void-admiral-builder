@@ -1,6 +1,6 @@
-# Army Builder 🛡️⚔️
+# Void Admiral Builder 🛡️⚔️
 
-A modern React TypeScript application for building and managing armies from various factions. Built with Vite for fast development and optimized production builds.
+A modern React TypeScript application for building and managing void admiral fleets from various factions. Built with Vite for fast development and optimized production builds.
 
 ## Features
 

@@ -24,7 +24,7 @@ const FactionInfoModal: React.FC<FactionInfoModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content faction-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{selectedFaction} - {activeTab === 'abilities' ? 'Command Abilities' : 'Fluff & Special Rules'}</h2>
+          <h2>{selectedFaction} - {activeTab === 'abilities' ? 'Void Admiral Abilities' : 'Fluff & Special Rules'}</h2>
           <button className="modal-close" onClick={onClose} title="Close modal" aria-label="Close modal">
             <i className="fas fa-times"></i>
           </button>
@@ -32,7 +32,7 @@ const FactionInfoModal: React.FC<FactionInfoModalProps> = ({
         <div className="modal-body">
           {activeTab === 'abilities' && faction.commandAbilities && (
             <div className="abilities-section">
-              <h3>Command Abilities</h3>
+              <h3>Void Admiral Abilities</h3>
               <div className="abilities-grid">
                 {faction.commandAbilities.map((ability: any, index: number) => (
                   <div key={index} className="ability-card">
