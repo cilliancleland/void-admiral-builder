@@ -31,7 +31,7 @@ function App() {
   }
 
   useEffect(() => {
-    fetch('/data/factions.json')
+    fetch('./data/factions.json')
       .then(response => response.json())
       .then(data => {
         setFactionData(data)
