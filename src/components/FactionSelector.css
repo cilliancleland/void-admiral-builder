@@ -25,9 +25,3 @@
 .army-selector:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-
-.selected-army {
-  margin-top: 1em;
-  color: #646cff;
-  font-size: 0.9em;
-}

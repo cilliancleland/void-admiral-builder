@@ -39,11 +39,6 @@ const FactionSelector: React.FC<FactionSelectorProps> = ({
           ))}
         </select>
       )}
-      {selectedFaction && (
-        <p className="selected-army">
-          Selected: <strong>{selectedFaction}</strong>
-        </p>
-      )}
     </div>
   )
 }
