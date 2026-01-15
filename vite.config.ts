@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/void-admiral-builder/',
   plugins: [react()],
   test: {
     globals: true,
