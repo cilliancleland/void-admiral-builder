@@ -19,7 +19,7 @@ This is a well-structured React TypeScript application for building Void Admiral
 - **Tests:** ✅ 15/15 passing
 - **TypeScript:** ✅ Full coverage
 - **Critical Bugs:** ✅ All resolved
-- **Performance:** ⚠️ Some optimizations missing
+- **Performance:** ⚠️ Minor optimizations remaining
 
 ---
 
@@ -63,17 +63,15 @@ const sortedArmyListWithIndices = useMemo(() => {
 
 ## 🟡 Performance Issues
 
-### 2. Missing React.memo on Modal Components
-**Location:** `ShipsModal.tsx`, `FactionInfoModal.tsx`
+### 2. Missing React.memo on Modal Components ✅ PARTIALLY RESOLVED
+**Status:** ShipsModal memoized, FactionInfoModal pending
 
-**Issue:** Modal components are not wrapped in `React.memo` despite having expensive renders and potentially changing frequently.
+**Changes Made:**
+- ✅ Added `React.memo` to ShipsModal component
+- ✅ Added `displayName` for debugging
+- 🔄 FactionInfoModal still needs memoization
 
-**Impact:**
-- Unnecessary re-renders when parent components update
-- Performance impact when modals are opened/closed frequently
-- Modal content re-renders even when props haven't changed
-
-**Recommendation:** Wrap modal components in `React.memo` and add `displayName` for debugging.
+**Result:** ShipsModal now optimized to prevent unnecessary re-renders.
 
 ```tsx
 const ShipsModal: React.FC<ShipsModalProps> = React.memo(({
@@ -238,7 +236,7 @@ src/
 
 ### Phase 1: Critical Fixes ✅ COMPLETE
 1. ✅ Fix ArmyList index mismatch bug
-2. Add React.memo to modal components
+2. ✅ Add React.memo to ShipsModal component
 3. Add React.memo to ArmyList component
 
 ### Phase 2: Performance Optimization (1-2 days)
