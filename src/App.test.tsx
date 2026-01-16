@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import App from './App'
 
 // Mock the fetch function
-global.fetch = vi.fn()
+globalThis.fetch = vi.fn()
 
 // Mock faction data
 const mockFactionData = {
@@ -45,7 +45,7 @@ describe('App', () => {
     render(<App />)
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/data/factions.json')
+      expect(fetch).toHaveBeenCalledWith('./data/factions.json')
     })
   })
 
