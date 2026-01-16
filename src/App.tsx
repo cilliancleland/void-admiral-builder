@@ -5,6 +5,41 @@ import FactionSelector from './components/FactionSelector'
 import ShipsModal from './components/ShipsModal'
 import FactionInfoModal from './components/FactionInfoModal'
 
+// Utility functions for URL parameter management
+const serializeArmyList = (armyList: Array<{
+  name: string,
+  count: number,
+  points: number,
+  prowWeapon: string | string[],
+  hullWeapons: string[],
+  isSquadron?: boolean
+}>) => {
+  return encodeURIComponent(JSON.stringify(armyList))
+}
+
+const deserializeArmyList = (serialized: string) => {
+  try {
+    return JSON.parse(decodeURIComponent(serialized))
+  } catch {
+    return []
+  }
+}
+
+const updateURL = (faction: string, armyList: any[]) => {
+  const url = new URL(window.location.href)
+  if (faction) {
+    url.searchParams.set('faction', faction)
+  } else {
+    url.searchParams.delete('faction')
+  }
+  if (armyList.length > 0) {
+    url.searchParams.set('army', serializeArmyList(armyList))
+  } else {
+    url.searchParams.delete('army')
+  }
+  window.history.replaceState({}, '', url.toString())
+}
+
 function App() {
   const [selectedFaction, setSelectedFaction] = useState('')
   const [factions, setFactions] = useState<string[]>([])
@@ -26,8 +61,18 @@ function App() {
   const handleFactionChange = (newFaction: string) => {
     setSelectedFaction(newFaction)
     // Reset army data when faction changes
-    setArmyList([])
+    const newArmyList: Array<{
+      name: string,
+      count: number,
+      points: number,
+      prowWeapon: string | string[],
+      hullWeapons: string[],
+      isSquadron?: boolean
+    }> = []
+    setArmyList(newArmyList)
     setTotalPoints(0)
+    // Update URL with new faction and empty army
+    updateURL(newFaction, newArmyList)
   }
 
   useEffect(() => {
@@ -36,6 +81,30 @@ function App() {
       .then(data => {
         setFactionData(data)
         setFactions(Object.keys(data))
+
+        // After faction data is loaded, restore state from URL parameters
+        const urlParams = new URLSearchParams(window.location.search)
+        const factionParam = urlParams.get('faction')
+        const armyParam = urlParams.get('army')
+
+        if (factionParam && data[factionParam]) {
+          setSelectedFaction(factionParam)
+        }
+
+        if (armyParam && factionParam && data[factionParam]) {
+          const restoredArmyList = deserializeArmyList(armyParam)
+          if (Array.isArray(restoredArmyList)) {
+            // Validate that all ships in the army list exist in the faction data
+            const validArmyList = restoredArmyList.filter(ship =>
+              data[factionParam].ships && data[factionParam].ships[ship.name]
+            )
+            setArmyList(validArmyList)
+            // Recalculate total points
+            const total = validArmyList.reduce((sum, ship) => sum + ship.points, 0)
+            setTotalPoints(total)
+          }
+        }
+
         setLoading(false)
       })
       .catch(error => {
@@ -50,15 +119,20 @@ function App() {
     const shipPoints = isSquadron ? basePoints * 3 : basePoints
 
     // Add each ship as a separate entry with weapon selections
-    setArmyList([...armyList, {
+    const newShip = {
       name: shipName,
       count: 1,
       points: shipPoints,
       prowWeapon: isSquadron ? [] : '',
       hullWeapons: [],
       isSquadron: isSquadron
-    }])
+    }
+    const newArmyList = [...armyList, newShip]
+    setArmyList(newArmyList)
     setTotalPoints(totalPoints + shipPoints)
+
+    // Update URL with new army list
+    updateURL(selectedFaction, newArmyList)
 
     // Close the modal after adding the ship
     setIsShipsModalOpen(false)
@@ -69,6 +143,8 @@ function App() {
     const updatedArmyList = armyList.filter((_, i) => i !== index)
     setArmyList(updatedArmyList)
     setTotalPoints(totalPoints - shipToRemove.points)
+    // Update URL with updated army list
+    updateURL(selectedFaction, updatedArmyList)
   }
 
   const updateShipWeapons = (index: number, prowWeapon: string | string[], hullWeapons: string[]) => {
@@ -76,6 +152,8 @@ function App() {
     updatedArmyList[index].prowWeapon = prowWeapon
     updatedArmyList[index].hullWeapons = hullWeapons
     setArmyList(updatedArmyList)
+    // Update URL with updated army list
+    updateURL(selectedFaction, updatedArmyList)
   }
 
   const hasDuplicateShips = () => {
@@ -237,6 +315,13 @@ function App() {
             selectedFaction={selectedFaction}
             activeTab={factionInfoTab}
           />
+        </div>
+      )}
+
+      {!selectedFaction && factionData && (
+        <div className="bookmark-notice">
+          <i className="fas fa-bookmark"></i>
+          Bookmark any list to come back to it later, or share the URL with your friends
         </div>
       )}
     </div>
