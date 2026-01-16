@@ -5,15 +5,13 @@ interface FactionSelectorProps {
   factions: string[]
   selectedFaction: string
   loading: boolean
-  onFactionChange: (faction: string) => void
   onFactionSelect: (faction: string) => void
 }
 
-const FactionSelector: React.FC<FactionSelectorProps> = ({
+const FactionSelector: React.FC<FactionSelectorProps> = React.memo(({
   factions,
   selectedFaction,
   loading,
-  onFactionChange,
   onFactionSelect
 }) => {
   return (
@@ -23,13 +21,9 @@ const FactionSelector: React.FC<FactionSelectorProps> = ({
       ) : (
         <select
           value={selectedFaction}
-          onChange={(e) => {
-            onFactionChange(e.target.value)
-            if (e.target.value) {
-              onFactionSelect(e.target.value)
-            }
-          }}
+          onChange={(e) => onFactionSelect(e.target.value)}
           className="army-selector"
+          aria-label="Select faction"
         >
           <option value="">Choose a faction...</option>
           {factions.map((faction) => (
@@ -41,6 +35,8 @@ const FactionSelector: React.FC<FactionSelectorProps> = ({
       )}
     </div>
   )
-}
+})
+
+FactionSelector.displayName = 'FactionSelector'
 
 export default FactionSelector

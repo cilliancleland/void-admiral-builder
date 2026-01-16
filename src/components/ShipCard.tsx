@@ -1,17 +1,6 @@
 import React from 'react'
 import './ShipCard.css'
-
-interface ShipData {
-  size: string
-  points: number
-  statline: {
-    Hull: number
-    Speed: number
-    Armour?: number
-    Shields?: number
-    Flak?: number
-  }
-}
+import type { ShipData } from '../types'
 
 interface ShipCardProps {
   shipName: string
@@ -19,7 +8,7 @@ interface ShipCardProps {
   onAddToArmy: (shipName: string, shipData: ShipData) => void
 }
 
-const ShipCard: React.FC<ShipCardProps> = ({ shipName, shipData, onAddToArmy }) => {
+const ShipCard: React.FC<ShipCardProps> = React.memo(({ shipName, shipData, onAddToArmy }) => {
   return (
     <div className="ship-card">
       <h3>{shipName}</h3>
@@ -39,6 +28,8 @@ const ShipCard: React.FC<ShipCardProps> = ({ shipName, shipData, onAddToArmy }) 
       </button>
     </div>
   )
-}
+})
+
+ShipCard.displayName = 'ShipCard'
 
 export default ShipCard

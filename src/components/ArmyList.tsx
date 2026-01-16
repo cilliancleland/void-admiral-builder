@@ -1,49 +1,11 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import ArmyShipCard from './ArmyShipCard'
 import './ArmyList.css'
-
-interface ArmyShip {
-  name: string
-  count: number
-  points: number
-  prowWeapon: string | string[]
-  hullWeapons: string[]
-  isSquadron?: boolean
-}
-
-interface ShipData {
-  size: string
-  points: number
-  statline: {
-    Hull: number
-    Speed: number
-    Armour?: number
-    Shields?: number
-    Flak?: number
-  }
-  prow?: {
-    select: number
-    options: Array<{
-      name: string
-      targets?: string
-      attacks?: number
-      range?: string
-    }>
-  }
-  hull?: {
-    select: number
-    options: Array<{
-      name: string
-      targets?: string
-      attacks?: number
-      range?: string
-    }>
-  }
-}
+import type { ArmyShip, FactionData } from '../types'
 
 interface ArmyListProps {
   armyList: ArmyShip[]
-  factionData: any
+  factionData: FactionData
   selectedFaction: string
   totalPoints: number
   hasDuplicateShips: boolean
@@ -62,6 +24,13 @@ const ArmyList: React.FC<ArmyListProps> = ({
   onRemoveShip,
   onUpdateWeapons
 }) => {
+  // Memoize sorted army list with original indices to avoid sorting on every render
+  const sortedArmyListWithIndices = useMemo(() => {
+    return armyList
+      .map((ship, originalIndex) => ({ ship, originalIndex }))
+      .sort((a, b) => b.ship.points - a.ship.points)
+  }, [armyList])
+
   return (
     <div className="army-section">
       <div className="army-list">
@@ -69,14 +38,14 @@ const ArmyList: React.FC<ArmyListProps> = ({
         <div className="army-total">
           <h3>Total Points: {totalPoints}</h3>
           {hasDuplicateShips && (
-            <div className="duplicate-warning">
-              <i className="fas fa-exclamation-triangle"></i>
+            <div className="duplicate-warning" role="alert">
+              <i className="fas fa-exclamation-triangle" aria-hidden="true"></i>
               Duplicate ships detected
             </div>
           )}
           {hasIncompleteWeaponSelections && (
-            <div className="incomplete-warning">
-              <i className="fas fa-exclamation-circle"></i>
+            <div className="incomplete-warning" role="alert">
+              <i className="fas fa-exclamation-circle" aria-hidden="true"></i>
               Ships with incomplete weapon selections
             </div>
           )}
@@ -85,16 +54,16 @@ const ArmyList: React.FC<ArmyListProps> = ({
           <p>No ships added yet</p>
         ) : (
           <div className="army-ships">
-            {armyList
-              .sort((a, b) => b.points - a.points)
-              .map((ship, index) => {
+            {sortedArmyListWithIndices.map(({ ship, originalIndex }) => {
               const shipData = factionData[selectedFaction].ships[ship.name]
+              // Use stable key combining ship name, original index, and ship properties for uniqueness
+              const stableKey = `${ship.name}-${originalIndex}-${ship.points}-${JSON.stringify(ship.prowWeapon)}-${ship.hullWeapons.join(',')}`
               return (
                 <ArmyShipCard
-                  key={index}
+                  key={stableKey}
                   ship={ship}
                   shipData={shipData}
-                  index={index}
+                  index={originalIndex}
                   onRemove={onRemoveShip}
                   onUpdateWeapons={onUpdateWeapons}
                 />

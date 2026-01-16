@@ -1,26 +1,15 @@
 import React from 'react'
 import ShipCard from './ShipCard'
 import './ShipsGrid.css'
-
-interface ShipData {
-  size: string
-  points: number
-  statline: {
-    Hull: number
-    Speed: number
-    Armour?: number
-    Shields?: number
-    Flak?: number
-  }
-}
+import type { ShipData, FactionData } from '../types'
 
 interface ShipsGridProps {
-  factionData: any
+  factionData: FactionData
   selectedFaction: string
   onAddToArmy: (shipName: string, shipData: ShipData) => void
 }
 
-const ShipsGrid: React.FC<ShipsGridProps> = ({ factionData, selectedFaction, onAddToArmy }) => {
+const ShipsGrid: React.FC<ShipsGridProps> = React.memo(({ factionData, selectedFaction, onAddToArmy }) => {
   return (
     <div className="ships-grid">
       {Object.keys(factionData[selectedFaction].ships).map((shipName) => (
@@ -33,6 +22,8 @@ const ShipsGrid: React.FC<ShipsGridProps> = ({ factionData, selectedFaction, onA
       ))}
     </div>
   )
-}
+})
+
+ShipsGrid.displayName = 'ShipsGrid'
 
 export default ShipsGrid

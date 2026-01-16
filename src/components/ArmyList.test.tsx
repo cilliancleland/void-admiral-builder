@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import ArmyList from './ArmyList'
@@ -98,7 +98,7 @@ describe('ArmyList', () => {
       />
     )
 
-    const deleteButton = screen.getByRole('button', { name: /remove ship/i })
+    const deleteButton = screen.getByRole('button', { name: 'Remove Galleon from army' })
     await user.click(deleteButton)
 
     expect(mockOnRemoveShip).toHaveBeenCalledWith(0)

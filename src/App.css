@@ -263,6 +263,13 @@ button:focus-visible {
 }
 
 /* Print styles */
+/* Hide print content on screen */
+@media screen {
+  .print-content {
+    display: none;
+  }
+}
+
 @media print {
   /* Hide everything except printable content */
   body * {
@@ -270,12 +277,8 @@ button:focus-visible {
   }
 
   /* Show only the printable content */
-  .print-content,
-  .print-content * {
-    visibility: visible;
-  }
-
   .print-content {
+    visibility: visible;
     position: absolute;
     left: 0;
     top: 0;
@@ -283,6 +286,10 @@ button:focus-visible {
     font-family: Arial, sans-serif;
     font-size: 12px;
     line-height: 1.4;
+  }
+
+  .print-content * {
+    visibility: visible;
   }
 
   .print-header {
@@ -314,6 +321,15 @@ button:focus-visible {
     border: 1px solid #000;
     padding: 8px;
     text-align: left;
+    vertical-align: top;
+  }
+
+  .print-table td div {
+    margin-bottom: 4px;
+  }
+
+  .print-table td div:last-child {
+    margin-bottom: 0;
   }
 
   .print-table th {

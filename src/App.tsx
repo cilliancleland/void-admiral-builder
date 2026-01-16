@@ -1,107 +1,68 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import './App.css'
 import ArmyList from './components/ArmyList'
 import FactionSelector from './components/FactionSelector'
 import ShipsModal from './components/ShipsModal'
 import FactionInfoModal from './components/FactionInfoModal'
-
-// Utility functions for URL parameter management
-const serializeArmyList = (armyList: Array<{
-  name: string,
-  count: number,
-  points: number,
-  prowWeapon: string | string[],
-  hullWeapons: string[],
-  isSquadron?: boolean
-}>) => {
-  return encodeURIComponent(JSON.stringify(armyList))
-}
-
-const deserializeArmyList = (serialized: string) => {
-  try {
-    return JSON.parse(decodeURIComponent(serialized))
-  } catch {
-    return []
-  }
-}
-
-const updateURL = (faction: string, armyList: any[]) => {
-  const url = new URL(window.location.href)
-  if (faction) {
-    url.searchParams.set('faction', faction)
-  } else {
-    url.searchParams.delete('faction')
-  }
-  if (armyList.length > 0) {
-    url.searchParams.set('army', serializeArmyList(armyList))
-  } else {
-    url.searchParams.delete('army')
-  }
-  window.history.replaceState({}, '', url.toString())
-}
+import type { ArmyShip, FactionData, ShipData } from './types'
+import { deserializeArmyList, updateURL, createDebouncedUpdateURL } from './utils/urlUtils'
+import { formatWeaponDisplay } from './utils/weaponUtils'
+import { isShipWeaponSelectionComplete } from './utils/weaponUtils'
+import { validateArmyList, isValidFaction } from './utils/validation'
 
 function App() {
   const [selectedFaction, setSelectedFaction] = useState('')
   const [factions, setFactions] = useState<string[]>([])
-  const [factionData, setFactionData] = useState<any>(null)
+  const [factionData, setFactionData] = useState<FactionData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [armyList, setArmyList] = useState<Array<{
-    name: string,
-    count: number,
-    points: number,
-    prowWeapon: string | string[],
-    hullWeapons: string[],
-    isSquadron?: boolean
-  }>>([])
-  const [totalPoints, setTotalPoints] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [armyList, setArmyList] = useState<ArmyShip[]>([])
   const [isShipsModalOpen, setIsShipsModalOpen] = useState(false)
   const [isFactionInfoModalOpen, setIsFactionInfoModalOpen] = useState(false)
   const [factionInfoTab, setFactionInfoTab] = useState<'abilities' | 'rules'>('abilities')
 
-  const handleFactionChange = (newFaction: string) => {
+  // Create debounced URL updater
+  const debouncedUpdateURLRef = useRef(createDebouncedUpdateURL(500))
+
+  // Derive totalPoints from armyList
+  const totalPoints = useMemo(() => {
+    return armyList.reduce((sum, ship) => sum + ship.points, 0)
+  }, [armyList])
+
+  const handleFactionChange = useCallback((newFaction: string) => {
     setSelectedFaction(newFaction)
     // Reset army data when faction changes
-    const newArmyList: Array<{
-      name: string,
-      count: number,
-      points: number,
-      prowWeapon: string | string[],
-      hullWeapons: string[],
-      isSquadron?: boolean
-    }> = []
+    const newArmyList: ArmyShip[] = []
     setArmyList(newArmyList)
-    setTotalPoints(0)
-    // Update URL with new faction and empty army
+    // Update URL with new faction and empty army (immediate for faction change)
     updateURL(newFaction, newArmyList)
-  }
+  }, [])
 
   useEffect(() => {
     fetch('./data/factions.json')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load factions: ${response.statusText}`)
+        }
+        return response.json()
+      })
       .then(data => {
         setFactionData(data)
         setFactions(Object.keys(data))
+        setError(null)
 
         // After faction data is loaded, restore state from URL parameters
         const urlParams = new URLSearchParams(window.location.search)
         const factionParam = urlParams.get('faction')
         const armyParam = urlParams.get('army')
 
-        if (factionParam && data[factionParam]) {
+        if (factionParam && isValidFaction(factionParam, data)) {
           setSelectedFaction(factionParam)
-        }
 
-        if (armyParam && factionParam && data[factionParam]) {
-          const restoredArmyList = deserializeArmyList(armyParam)
-          if (Array.isArray(restoredArmyList)) {
-            // Validate that all ships in the army list exist in the faction data
-            const validArmyList = restoredArmyList.filter(ship =>
-              data[factionParam].ships && data[factionParam].ships[ship.name]
-            )
+          if (armyParam) {
+            const restoredArmyList = deserializeArmyList(armyParam)
+            const validArmyList = validateArmyList(restoredArmyList, factionParam, data)
             setArmyList(validArmyList)
-            // Recalculate total points
-            const total = validArmyList.reduce((sum, ship) => sum + ship.points, 0)
-            setTotalPoints(total)
           }
         }
 
@@ -109,17 +70,18 @@ function App() {
       })
       .catch(error => {
         console.error('Error loading factions:', error)
+        setError('Failed to load faction data. Please refresh the page.')
         setLoading(false)
       })
   }, [])
 
-  const addShipToArmy = (shipName: string, shipData: any) => {
+  const addShipToArmy = useCallback((shipName: string, shipData: ShipData) => {
     const basePoints = shipData.points
     const isSquadron = shipData.size.toLowerCase() === 'squadron'
     const shipPoints = isSquadron ? basePoints * 3 : basePoints
 
     // Add each ship as a separate entry with weapon selections
-    const newShip = {
+    const newShip: ArmyShip = {
       name: shipName,
       count: 1,
       points: shipPoints,
@@ -127,37 +89,42 @@ function App() {
       hullWeapons: [],
       isSquadron: isSquadron
     }
-    const newArmyList = [...armyList, newShip]
-    setArmyList(newArmyList)
-    setTotalPoints(totalPoints + shipPoints)
-
-    // Update URL with new army list
-    updateURL(selectedFaction, newArmyList)
+    setArmyList(prev => {
+      const newArmyList = [...prev, newShip]
+      // Debounced URL update
+      debouncedUpdateURLRef.current(selectedFaction, newArmyList)
+      return newArmyList
+    })
 
     // Close the modal after adding the ship
     setIsShipsModalOpen(false)
-  }
+  }, [selectedFaction])
 
-  const removeShipFromArmy = (index: number) => {
-    const shipToRemove = armyList[index]
-    const updatedArmyList = armyList.filter((_, i) => i !== index)
-    setArmyList(updatedArmyList)
-    setTotalPoints(totalPoints - shipToRemove.points)
-    // Update URL with updated army list
-    updateURL(selectedFaction, updatedArmyList)
-  }
+  const removeShipFromArmy = useCallback((index: number) => {
+    setArmyList(prev => {
+      const updatedArmyList = prev.filter((_, i) => i !== index)
+      // Debounced URL update
+      debouncedUpdateURLRef.current(selectedFaction, updatedArmyList)
+      return updatedArmyList
+    })
+  }, [selectedFaction])
 
-  const updateShipWeapons = (index: number, prowWeapon: string | string[], hullWeapons: string[]) => {
-    const updatedArmyList = [...armyList]
-    updatedArmyList[index].prowWeapon = prowWeapon
-    updatedArmyList[index].hullWeapons = hullWeapons
-    setArmyList(updatedArmyList)
-    // Update URL with updated army list
-    updateURL(selectedFaction, updatedArmyList)
-  }
+  const updateShipWeapons = useCallback((index: number, prowWeapon: string | string[], hullWeapons: string[]) => {
+    setArmyList(prev => {
+      const updatedArmyList = [...prev]
+      updatedArmyList[index] = {
+        ...updatedArmyList[index],
+        prowWeapon,
+        hullWeapons
+      }
+      // Debounced URL update
+      debouncedUpdateURLRef.current(selectedFaction, updatedArmyList)
+      return updatedArmyList
+    })
+  }, [selectedFaction])
 
-  const hasDuplicateShips = () => {
-    if (armyList.length < 2) return false
+  const hasDuplicateShips = useMemo(() => {
+    if (armyList.length < 2 || !factionData || !selectedFaction) return false
 
     for (let i = 0; i < armyList.length; i++) {
       for (let j = i + 1; j < armyList.length; j++) {
@@ -187,53 +154,16 @@ function App() {
       }
     }
     return false
-  }
+  }, [armyList, factionData, selectedFaction])
 
-  const hasIncompleteWeaponSelections = () => {
-    if (armyList.length === 0) return false
+  const hasIncompleteWeaponSelections = useMemo(() => {
+    if (armyList.length === 0 || !factionData || !selectedFaction) return false
 
     return armyList.some(ship => {
       const shipData = factionData[selectedFaction].ships[ship.name]
       return !isShipWeaponSelectionComplete(ship, shipData)
     })
-  }
-
-  const isShipWeaponSelectionComplete = (ship: any, shipData: any) => {
-    // Check if all required prow weapons are selected
-    if (shipData.prow) {
-      const requiredProwSelections = shipData.prow.select
-      const currentProwSelections = Array.isArray(ship.prowWeapon) ? ship.prowWeapon.length : (ship.prowWeapon ? 1 : 0)
-
-      if (currentProwSelections < requiredProwSelections) {
-        return false
-      }
-
-      // Check if any prow weapons are still default/empty
-      if (Array.isArray(ship.prowWeapon)) {
-        if (ship.prowWeapon.some((weapon: string) => !weapon || weapon === '')) {
-          return false
-        }
-      } else if (!ship.prowWeapon || ship.prowWeapon === '') {
-        return false
-      }
-    }
-
-    // Check if all required hull weapons are selected
-    if (shipData.hull) {
-      const requiredHullSelections = ship.isSquadron ? shipData.hull.select * 3 : shipData.hull.select
-
-      if (ship.hullWeapons.length < requiredHullSelections) {
-        return false
-      }
-
-      // Check if any hull weapons are still default/empty
-      if (ship.hullWeapons.some((weapon: string) => !weapon || weapon === '')) {
-        return false
-      }
-    }
-
-    return true
-  }
+  }, [armyList, factionData, selectedFaction])
 
   return (
     <div className="App">
@@ -248,7 +178,6 @@ function App() {
           factions={factions}
           selectedFaction={selectedFaction}
           loading={loading}
-          onFactionChange={setSelectedFaction}
           onFactionSelect={handleFactionChange}
         />
 
@@ -257,8 +186,9 @@ function App() {
             <button
               className="open-ships-modal-btn"
               onClick={() => setIsShipsModalOpen(true)}
+              aria-label="Add ship to army"
             >
-              <i className="fas fa-plus"></i>
+              <i className="fas fa-plus" aria-hidden="true"></i>
               Add ship
             </button>
 
@@ -268,8 +198,9 @@ function App() {
                 setFactionInfoTab('abilities')
                 setIsFactionInfoModalOpen(true)
               }}
+              aria-label="View void admiral abilities"
             >
-              <i className="fas fa-dice"></i>
+              <i className="fas fa-dice" aria-hidden="true"></i>
               Void Admiral Abilities
             </button>
 
@@ -279,8 +210,9 @@ function App() {
                 setFactionInfoTab('rules')
                 setIsFactionInfoModalOpen(true)
               }}
+              aria-label="View faction fluff and rules"
             >
-              <i className="fas fa-book"></i>
+              <i className="fas fa-book" aria-hidden="true"></i>
               Fluff & Rules
             </button>
 
@@ -288,8 +220,9 @@ function App() {
               <button
                 className="print-btn"
                 onClick={() => window.print()}
+                aria-label="Print army list"
               >
-                <i className="fas fa-print"></i>
+                <i className="fas fa-print" aria-hidden="true"></i>
                 Print List
               </button>
             )}
@@ -304,8 +237,8 @@ function App() {
             factionData={factionData}
             selectedFaction={selectedFaction}
             totalPoints={totalPoints}
-            hasDuplicateShips={hasDuplicateShips()}
-            hasIncompleteWeaponSelections={hasIncompleteWeaponSelections()}
+            hasDuplicateShips={hasDuplicateShips}
+            hasIncompleteWeaponSelections={hasIncompleteWeaponSelections}
             onRemoveShip={removeShipFromArmy}
             onUpdateWeapons={updateShipWeapons}
           />
@@ -328,16 +261,30 @@ function App() {
         </div>
       )}
 
+      {error && (
+        <div className="error-message" role="alert" style={{
+          padding: '1rem',
+          margin: '1rem',
+          backgroundColor: '#d32f2f',
+          color: '#fff',
+          borderRadius: '4px',
+          textAlign: 'center'
+        }}>
+          <i className="fas fa-exclamation-circle" aria-hidden="true"></i>
+          {error}
+        </div>
+      )}
+
       {!selectedFaction && factionData && (
         <div className="bookmark-notice">
-          <i className="fas fa-bookmark"></i>
+          <i className="fas fa-bookmark" aria-hidden="true"></i>
           Bookmark any list to come back to it later, or share the URL with your friends
         </div>
       )}
 
       {/* Printable content - hidden on screen */}
       {selectedFaction && factionData && armyList.length > 0 && (
-        <div className="print-content" style={{ display: 'none' }}>
+        <div className="print-content">
           <div className="print-header">
             <div className="print-title">Void Admiral Army List</div>
             <div className="print-subtitle">Faction: {selectedFaction}</div>
@@ -361,7 +308,7 @@ function App() {
               {armyList.map((ship, index) => {
                 const shipData = factionData[selectedFaction].ships[ship.name]
                 return (
-                  <tr key={index}>
+                  <tr key={`${ship.name}-${index}-${ship.points}`}>
                     <td>{ship.name}</td>
                     <td>{shipData.size}</td>
                     <td>{ship.points}</td>
@@ -371,11 +318,23 @@ function App() {
                     <td>{shipData.statline.Flak}</td>
                     <td>
                       {Array.isArray(ship.prowWeapon)
-                        ? ship.prowWeapon.join(', ')
-                        : ship.prowWeapon || 'None'
+                        ? ship.prowWeapon.map((weapon, idx) => (
+                            <div key={idx}>
+                              {formatWeaponDisplay(weapon, shipData.prow?.options || [])}
+                            </div>
+                          ))
+                        : ship.prowWeapon
+                        ? formatWeaponDisplay(ship.prowWeapon, shipData.prow?.options || [])
+                        : 'None'
                       }
                     </td>
-                    <td>{ship.hullWeapons.join(', ')}</td>
+                    <td>
+                      {ship.hullWeapons.map((weapon, idx) => (
+                        <div key={idx}>
+                          {formatWeaponDisplay(weapon, shipData.hull?.options || [])}
+                        </div>
+                      ))}
+                    </td>
                   </tr>
                 )
               })}
@@ -388,8 +347,8 @@ function App() {
 
           <div className="print-section">
             <h3>Special Rules</h3>
-            {factionData[selectedFaction].specialRules?.map((rule: any, index: number) => (
-              <div key={index} className="print-rule">
+            {factionData[selectedFaction].specialRules?.map((rule, index: number) => (
+              <div key={`rule-${rule.name}-${index}`} className="print-rule">
                 <div className="print-rule-name">{rule.name}</div>
                 <div>{rule.description}</div>
               </div>
@@ -398,8 +357,8 @@ function App() {
 
           <div className="print-section">
             <h3>Command Abilities</h3>
-            {factionData[selectedFaction].commandAbilities?.map((ability: any, index: number) => (
-              <div key={index} className="print-ability">
+            {factionData[selectedFaction].commandAbilities?.map((ability, index: number) => (
+              <div key={`ability-${ability.name}-${ability.dice}-${index}`} className="print-ability">
                 <div className="print-ability-name">
                   <span className="print-ability-dice">[{ability.dice}]</span>
                   {ability.name}

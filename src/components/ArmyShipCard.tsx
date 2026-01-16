@@ -1,74 +1,7 @@
 import React from 'react'
 import './ArmyShipCard.css'
-
-interface ShipData {
-  size: string
-  points: number
-  statline: {
-    Hull: number
-    Speed: number
-    Armour?: number
-    Shields?: number
-    Flak?: number
-  }
-  prow?: {
-    select: number
-    options: Array<{
-      name: string
-      targets?: string
-      attacks?: number
-      range?: string
-    }>
-  }
-  hull?: {
-    select: number
-    options: Array<{
-      name: string
-      targets?: string
-      attacks?: number
-      range?: string
-    }>
-  }
-}
-
-interface ArmyShip {
-  name: string
-  count: number
-  points: number
-  prowWeapon: string | string[]
-  hullWeapons: string[]
-  isSquadron?: boolean
-}
-
-interface ShipData {
-  size: string
-  points: number
-  statline: {
-    Hull: number
-    Speed: number
-    Armour?: number
-    Shields?: number
-    Flak?: number
-  }
-  prow?: {
-    select: number
-    options: Array<{
-      name: string
-      targets?: string
-      attacks?: number
-      range?: string
-    }>
-  }
-  hull?: {
-    select: number
-    options: Array<{
-      name: string
-      targets?: string
-      attacks?: number
-      range?: string
-    }>
-  }
-}
+import type { ShipData, ArmyShip } from '../types'
+import { isShipWeaponSelectionComplete } from '../utils/weaponUtils'
 
 interface ArmyShipCardProps {
   ship: ArmyShip
@@ -78,50 +11,13 @@ interface ArmyShipCardProps {
   onUpdateWeapons: (index: number, prowWeapon: string | string[], hullWeapons: string[]) => void
 }
 
-const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
+const ArmyShipCard: React.FC<ArmyShipCardProps> = React.memo(({
   ship,
   shipData,
   index,
   onRemove,
   onUpdateWeapons
 }) => {
-  const isShipWeaponSelectionComplete = (ship: any, shipData: ShipData) => {
-    // Check if all required prow weapons are selected
-    if (shipData.prow) {
-      const requiredProwSelections = shipData.prow.select
-      const currentProwSelections = Array.isArray(ship.prowWeapon) ? ship.prowWeapon.length : (ship.prowWeapon ? 1 : 0)
-
-      if (currentProwSelections < requiredProwSelections) {
-        return false
-      }
-
-      // Check if any prow weapons are still default/empty
-      if (Array.isArray(ship.prowWeapon)) {
-        if (ship.prowWeapon.some((weapon: string) => !weapon || weapon === '')) {
-          return false
-        }
-      } else if (!ship.prowWeapon || ship.prowWeapon === '') {
-        return false
-      }
-    }
-
-    // Check if all required hull weapons are selected
-    if (shipData.hull) {
-      const requiredHullSelections = ship.isSquadron ? shipData.hull.select * 3 : shipData.hull.select
-
-      if (ship.hullWeapons.length < requiredHullSelections) {
-        return false
-      }
-
-      // Check if any hull weapons are still default/empty
-      if (ship.hullWeapons.some((weapon: string) => !weapon || weapon === '')) {
-        return false
-      }
-    }
-
-    return true
-  }
-
   const hasIncompleteWeapons = !isShipWeaponSelectionComplete(ship, shipData)
   return (
     <div className="army-ship-item">
@@ -129,8 +25,9 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
         className="delete-ship-btn"
         onClick={() => onRemove(index)}
         title="Remove ship"
+        aria-label={`Remove ${ship.name} from army`}
       >
-        <i className="fas fa-times"></i>
+        <i className="fas fa-times" aria-hidden="true"></i>
       </button>
                         <div className="army-ship-header">
                           <span className="ship-name">
@@ -165,7 +62,7 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
               className="weapon-select"
             >
               <option value="">Choose prow weapon {weaponIndex + 1}...</option>
-              {shipData.prow?.options?.map((weapon: any, optionIndex: number) => (
+              {shipData.prow?.options?.map((weapon, optionIndex: number) => (
                 <option key={optionIndex} value={weapon.name}>
                   {weapon.name}
                   {weapon.targets && ` (${weapon.targets})`}
@@ -177,7 +74,7 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
         </div>
       )}
 
-      {shipData.hull && shipData.hull.options && shipData.hull.options.length > 0 && (
+      {shipData.hull && shipData.hull?.options && shipData.hull?.options?.length > 0 && (
         <div className="weapon-section">
           <label>Hull Weapons ({ship.isSquadron ? shipData.hull.select * 3 : shipData.hull.select} to select):</label>
           {Array.from({ length: ship.isSquadron ? shipData.hull.select * 3 : shipData.hull.select }, (_, weaponIndex) => (
@@ -192,7 +89,7 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
               className="weapon-select"
             >
               <option value="">Choose hull weapon {weaponIndex + 1}...</option>
-              {shipData.hull?.options?.map((weapon: any, optionIndex: number) => (
+              {shipData.hull?.options?.map((weapon, optionIndex: number) => (
                 <option key={optionIndex} value={weapon.name}>
                   {weapon.name}
                   {weapon.targets && ` (${weapon.targets})`}
@@ -205,6 +102,8 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
       )}
     </div>
   )
-}
+})
+
+ArmyShipCard.displayName = 'ArmyShipCard'
 
 export default ArmyShipCard

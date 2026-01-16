@@ -36,7 +36,10 @@ const mockFactionData = {
 describe('App', () => {
   beforeEach(() => {
     vi.mocked(fetch).mockClear()
-    vi.mocked(fetch).mockResolvedValueOnce({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockFactionData)
     } as Response)
 
