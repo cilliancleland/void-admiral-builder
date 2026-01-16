@@ -283,6 +283,16 @@ function App() {
               <i className="fas fa-book"></i>
               Fluff & Rules
             </button>
+
+            {armyList.length > 0 && (
+              <button
+                className="print-btn"
+                onClick={() => window.print()}
+              >
+                <i className="fas fa-print"></i>
+                Print List
+              </button>
+            )}
           </div>
         )}
       </header>
@@ -322,6 +332,82 @@ function App() {
         <div className="bookmark-notice">
           <i className="fas fa-bookmark"></i>
           Bookmark any list to come back to it later, or share the URL with your friends
+        </div>
+      )}
+
+      {/* Printable content - hidden on screen */}
+      {selectedFaction && factionData && armyList.length > 0 && (
+        <div className="print-content" style={{ display: 'none' }}>
+          <div className="print-header">
+            <div className="print-title">Void Admiral Army List</div>
+            <div className="print-subtitle">Faction: {selectedFaction}</div>
+          </div>
+
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>Ship</th>
+                <th>Size</th>
+                <th>Points</th>
+                <th>Hull</th>
+                <th>Speed</th>
+                <th>Shields</th>
+                <th>Flak</th>
+                <th>Prow Weapons</th>
+                <th>Hull Weapons</th>
+              </tr>
+            </thead>
+            <tbody>
+              {armyList.map((ship, index) => {
+                const shipData = factionData[selectedFaction].ships[ship.name]
+                return (
+                  <tr key={index}>
+                    <td>{ship.name}</td>
+                    <td>{shipData.size}</td>
+                    <td>{ship.points}</td>
+                    <td>{shipData.statline.Hull}</td>
+                    <td>{shipData.statline.Speed}</td>
+                    <td>{shipData.statline.Shields}</td>
+                    <td>{shipData.statline.Flak}</td>
+                    <td>
+                      {Array.isArray(ship.prowWeapon)
+                        ? ship.prowWeapon.join(', ')
+                        : ship.prowWeapon || 'None'
+                      }
+                    </td>
+                    <td>{ship.hullWeapons.join(', ')}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+
+          <div className="print-total">
+            Total Points: {totalPoints}
+          </div>
+
+          <div className="print-section">
+            <h3>Special Rules</h3>
+            {factionData[selectedFaction].specialRules?.map((rule: any, index: number) => (
+              <div key={index} className="print-rule">
+                <div className="print-rule-name">{rule.name}</div>
+                <div>{rule.description}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="print-section">
+            <h3>Command Abilities</h3>
+            {factionData[selectedFaction].commandAbilities?.map((ability: any, index: number) => (
+              <div key={index} className="print-ability">
+                <div className="print-ability-name">
+                  <span className="print-ability-dice">[{ability.dice}]</span>
+                  {ability.name}
+                </div>
+                <div>{ability.description}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

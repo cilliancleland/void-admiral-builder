@@ -165,10 +165,11 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
               className="weapon-select"
             >
               <option value="">Choose prow weapon {weaponIndex + 1}...</option>
-              {shipData.prow.options.map((weapon: any, optionIndex: number) => (
+              {shipData.prow?.options?.map((weapon: any, optionIndex: number) => (
                 <option key={optionIndex} value={weapon.name}>
                   {weapon.name}
-                  {weapon.attacks && weapon.range && ` (${weapon.attacks} attacks, ${weapon.range})`}
+                  {weapon.targets && ` (${weapon.targets})`}
+                  {weapon.attacks && weapon.range && ` ${weapon.attacks} dice @ ${weapon.range}`}
                 </option>
               ))}
             </select>
@@ -191,10 +192,11 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = ({
               className="weapon-select"
             >
               <option value="">Choose hull weapon {weaponIndex + 1}...</option>
-              {shipData.hull.options.map((weapon: any, optionIndex: number) => (
+              {shipData.hull?.options?.map((weapon: any, optionIndex: number) => (
                 <option key={optionIndex} value={weapon.name}>
                   {weapon.name}
-                  {weapon.attacks && weapon.range && ` (${weapon.attacks} attacks, ${weapon.range})`}
+                  {weapon.targets && ` (${weapon.targets})`}
+                  {weapon.attacks && weapon.range && ` ${weapon.attacks} dice @ ${weapon.range}`}
                 </option>
               ))}
             </select>

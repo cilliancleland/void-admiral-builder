@@ -36,6 +36,8 @@ describe('ArmyList', () => {
         factionData={mockFactionData}
         selectedFaction="Loyalists"
         totalPoints={9}
+        hasDuplicateShips={false}
+        hasIncompleteWeaponSelections={false}
         onRemoveShip={mockOnRemoveShip}
         onUpdateWeapons={mockOnUpdateWeapons}
       />
@@ -51,6 +53,8 @@ describe('ArmyList', () => {
         factionData={mockFactionData}
         selectedFaction="Loyalists"
         totalPoints={0}
+        hasDuplicateShips={false}
+        hasIncompleteWeaponSelections={false}
         onRemoveShip={mockOnRemoveShip}
         onUpdateWeapons={mockOnUpdateWeapons}
       />
@@ -66,6 +70,8 @@ describe('ArmyList', () => {
         factionData={mockFactionData}
         selectedFaction="Loyalists"
         totalPoints={9}
+        hasDuplicateShips={false}
+        hasIncompleteWeaponSelections={false}
         onRemoveShip={mockOnRemoveShip}
         onUpdateWeapons={mockOnUpdateWeapons}
       />
@@ -85,6 +91,8 @@ describe('ArmyList', () => {
         factionData={mockFactionData}
         selectedFaction="Loyalists"
         totalPoints={9}
+        hasDuplicateShips={false}
+        hasIncompleteWeaponSelections={false}
         onRemoveShip={mockOnRemoveShip}
         onUpdateWeapons={mockOnUpdateWeapons}
       />

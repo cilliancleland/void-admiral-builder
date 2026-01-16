@@ -39,6 +39,24 @@ describe('App', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       json: () => Promise.resolve(mockFactionData)
     } as Response)
+
+    // Mock window.location and window.history for URL parameter testing
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: 'http://localhost:3000/',
+        search: '',
+        origin: 'http://localhost:3000',
+        pathname: '/',
+      },
+      writable: true,
+    })
+
+    Object.defineProperty(window, 'history', {
+      value: {
+        replaceState: vi.fn(),
+      },
+      writable: true,
+    })
   })
 
   it('loads faction data on mount', async () => {
@@ -88,7 +106,7 @@ describe('App', () => {
 
     // Check that the cost shows 4 x 3 = 12 pts
     expect(screen.getByText('4 x 3 = 12 pts')).toBeInTheDocument()
-    expect(screen.getByText('Total Points: 12')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Total Points: 12' })).toBeInTheDocument()
   })
 
   it('adds ships to army and modal closes automatically', async () => {
@@ -121,8 +139,8 @@ describe('App', () => {
     })
 
     // Verify ship was added to army (galleon should be in army list)
-    expect(screen.getByText('Total Points: 9')).toBeInTheDocument()
-    expect(screen.getByText('Galleon')).toBeInTheDocument() // Should be in army now
+    expect(screen.getByRole('heading', { name: 'Total Points: 9' })).toBeInTheDocument()
+    expect(screen.getByText('Galleon', { selector: '.ship-name' })).toBeInTheDocument() // Should be in army now
   })
 
   it('can add a ship to army', async () => {
@@ -152,7 +170,7 @@ describe('App', () => {
     // Verify modal closed and ship was added
     await waitFor(() => {
       expect(screen.queryByText('Available Ships - Loyalists')).not.toBeInTheDocument()
-      expect(screen.getByText('Total Points: 9')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Total Points: 9' })).toBeInTheDocument()
     })
   })
 
@@ -183,7 +201,7 @@ describe('App', () => {
     // Modal closes automatically after adding ship
     // Verify ship was added
     await waitFor(() => {
-      expect(screen.getByText('Total Points: 9')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Total Points: 9' })).toBeInTheDocument()
     })
 
     // Switch to a different faction
@@ -194,5 +212,97 @@ describe('App', () => {
       expect(screen.getByText('Total Points: 0')).toBeInTheDocument()
       expect(screen.getByText('No ships added yet')).toBeInTheDocument()
     })
+  })
+
+  it('updates URL when faction is selected', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('Choose a faction...')).toBeInTheDocument()
+    })
+
+    // Select faction
+    const factionSelect = screen.getByRole('combobox')
+    await user.selectOptions(factionSelect, 'Loyalists')
+
+    // Verify URL was updated with faction parameter
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      {},
+      '',
+      expect.stringContaining('faction=Loyalists')
+    )
+  })
+
+  it('updates URL when ships are added to army', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    // Wait for data to load and select faction
+    await waitFor(() => {
+      expect(screen.getByText('Choose a faction...')).toBeInTheDocument()
+    })
+
+    const factionSelect = screen.getByRole('combobox')
+    await user.selectOptions(factionSelect, 'Loyalists')
+
+    // Clear previous history calls
+    vi.mocked(window.history.replaceState).mockClear()
+
+    // Add a ship to army
+    const addShipsButton = screen.getByRole('button', { name: /add ship/i })
+    await user.click(addShipsButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Galleon')).toBeInTheDocument()
+    })
+
+    const addButton = screen.getAllByRole('button', { name: /add to army/i })[0]
+    await user.click(addButton)
+
+    // Verify URL was updated with army data
+    await waitFor(() => {
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.stringContaining('army=')
+      )
+    })
+  })
+
+  it('restores state from URL parameters on mount', async () => {
+    // Mock URL with faction and army parameters
+    const mockArmyData = [
+      {
+        name: 'Galleon',
+        count: 1,
+        points: 9,
+        prowWeapon: '',
+        hullWeapons: [],
+        isSquadron: false
+      }
+    ]
+    const encodedArmy = encodeURIComponent(JSON.stringify(mockArmyData))
+
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: `http://localhost:3000/?faction=Loyalists&army=${encodedArmy}`,
+        search: `?faction=Loyalists&army=${encodedArmy}`,
+        origin: 'http://localhost:3000',
+        pathname: '/',
+      },
+      writable: true,
+    })
+
+    render(<App />)
+
+    // Wait for faction to be restored and army to be loaded
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Total Points: 9' })).toBeInTheDocument()
+    })
+
+    // Verify the ship was restored
+    expect(screen.getByText('Galleon', { selector: '.ship-name' })).toBeInTheDocument()
   })
 })
