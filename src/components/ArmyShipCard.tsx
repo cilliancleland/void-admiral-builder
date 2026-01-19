@@ -60,6 +60,7 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = React.memo(({
                 onUpdateWeapons(index, currentProwWeapons, ship.hullWeapons)
               }}
               className="weapon-select"
+              aria-label={`Choose prow weapon ${weaponIndex + 1} (${ship.isSquadron ? shipData.prow!.select * 3 : shipData.prow!.select} to select)`}
             >
               <option value="">Choose prow weapon {weaponIndex + 1}...</option>
               {shipData.prow?.options?.map((weapon, optionIndex: number) => (
@@ -87,6 +88,7 @@ const ArmyShipCard: React.FC<ArmyShipCardProps> = React.memo(({
                 onUpdateWeapons(index, ship.prowWeapon, newHullWeapons)
               }}
               className="weapon-select"
+              aria-label={`Choose hull weapon ${weaponIndex + 1} (${ship.isSquadron ? shipData.hull!.select * 3 : shipData.hull!.select} to select)`}
             >
               <option value="">Choose hull weapon {weaponIndex + 1}...</option>
               {shipData.hull?.options?.map((weapon, optionIndex: number) => (
